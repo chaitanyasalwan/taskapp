@@ -41,7 +41,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           TaskListPage.routeName,
         );
 
-        // your function / logic / dialog
+       
       },
       child: Scaffold(
         appBar: AppBar(
@@ -126,7 +126,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                                 taskStatus: false,
                                 taskTitle: _titleController.text);
                             saveTaskBloc.add(AddTaskEvent(model));
-                            // Go back to previous screen
+                         
                           }
                         },
                         child: Text('Save Task'),

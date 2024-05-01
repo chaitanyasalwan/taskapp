@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:taskapp/features/getTaskList/data/models/task_list_request_model.dart';
 import 'package:taskapp/features/getTaskList/data/models/task_list_response_model.dart';
 import 'package:taskapp/features/getTaskList/data/repository/edit_task_repo.dart';
-import 'package:taskapp/features/getTaskList/logic/cubit/getTaskCubit/get_tasks_cubit.dart';
+
 
 part 'update_task_event.dart';
 part 'update_task_state.dart';

@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import 'package:taskapp/core/utils/colors.dart';
 import 'package:taskapp/features/getTaskList/data/models/task_list_request_model.dart';
 import 'package:taskapp/features/getTaskList/data/models/task_list_response_model.dart';
-import 'package:taskapp/features/getTaskList/data/repository/get_all_tasks_repo.dart';
 import 'package:taskapp/features/getTaskList/logic/bloc/deleteTask/delete_tasks_bloc.dart';
 import 'package:taskapp/features/getTaskList/logic/bloc/updateTask/update_task_bloc.dart';
 import 'package:taskapp/features/getTaskList/logic/cubit/getTaskCubit/get_tasks_cubit.dart';
@@ -17,7 +16,7 @@ import 'package:taskapp/features/getTaskList/logic/provider/task_filter_provider
 import 'package:taskapp/features/getTaskList/presentation/views/addTaskListScreen.dart';
 import 'package:taskapp/features/getTaskList/presentation/views/editTasksScreen.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:taskapp/features/getTaskList/presentation/widgets/loading.dart';
+
 
 class TaskListPage extends StatefulWidget {
   const TaskListPage({super.key});
@@ -193,7 +192,7 @@ class _TaskListPageState extends State<TaskListPage> {
       onSelected: (filter) {
         Provider.of<TaskFilterProvider>(context, listen: false)
             .setFilter(filter);
-        // Apply filter logic here
+    
       },
       icon: Icon(Icons.filter_list),
     );
@@ -202,27 +201,28 @@ class _TaskListPageState extends State<TaskListPage> {
   Widget _buildTaskList(List<TaskListResponseModel>? taskList,
       DeleteTasksBloc bloc, UpdateTaskBloc updatebloc) {
     if (taskList!.isNotEmpty) {
-      if (checkboxStates.isEmpty) {
-        checkboxStates = List.filled(taskList.length ?? 0, false);
-        for (int i = 0; i < taskList.length; i++) {
-          checkboxStates[i] = taskList[i].taskStatus ?? false;
-        }
-      }
-
+     final animationDuration = 500; 
+      final totalItems = taskList.length;
+      final delayDurationRatio = animationDuration / totalItems;
       return AnimationLimiter(
         child: ListView.separated(
             itemBuilder: (context, index) {
               var task = taskList[index];
-        
+
               return AnimationConfiguration.staggeredList(
                 position: index,
-                duration: const Duration(milliseconds: 1000),
+                duration: Duration(milliseconds: animationDuration),
                 child: SlideAnimation(
-                  verticalOffset: 80,
+                verticalOffset: 50,
+                  delay: Duration(
+                      milliseconds: (delayDurationRatio * index).toInt()),
+                 
                   child: FadeInAnimation(
+                     duration: Duration(milliseconds: 50),
                     child: Container(
-                      margin: EdgeInsets.only(bottom: 20),
+                      margin: EdgeInsets.only(bottom: 10),
                       child: ListTile(
+                        
                         onTap: () {
                           Navigator.pushReplacementNamed(
                               context, EditTaskScreen.routeName,
@@ -238,18 +238,18 @@ class _TaskListPageState extends State<TaskListPage> {
                           listener: (context, state) {
                             if (state is UpdateTaskSuccess && mounted) {
                               final updatedTask = state.task;
+                             
                               final updatedTaskId = updatedTask!.id;
-                              // Find the index of the task with the updated ID
-                              final taskIndex = taskList
-                                  .indexWhere((task) => task.id == updatedTaskId);
+                         
+                              final taskIndex = taskList.indexWhere(
+                                  (task) => task.id == updatedTaskId);
                               if (taskIndex != -1) {
-                                // Update checkbox state only for the matching task
+                          
                                 setState(() {
-                                  checkboxStates[taskIndex] =
-                                      updatedTask.taskStatus ?? false;
+                                   taskList[taskIndex] = updatedTask;
                                 });
                               }
-                            
+                    
                               Navigator.of(context, rootNavigator: true).pop();
                             } else if (state is UpdateTaskError) {
                               Navigator.of(context, rootNavigator: true).pop();
@@ -261,38 +261,51 @@ class _TaskListPageState extends State<TaskListPage> {
                                 ),
                               );
                             } else if (state is UpdateTaskLoading) {
-                                showLoadingDialog(context);
+                              showLoadingDialog(context);
                             }
                           },
                           builder: (context, state) {
                             return Checkbox(
                               activeColor: MyColors.primaryColor,
-                              value: checkboxStates[index],
+                              value: task.taskStatus,
                               onChanged: (value) {
-                                TaskListRequestModel model = TaskListRequestModel(
-                                    createdAt: task.createdAt,
-                                    dueDate: task.dueDate,
-                                    taskDescription: task.taskDescription,
-                                    taskStatus: value,
-                                    taskTitle: task.taskTitle);
+                                TaskListRequestModel model =
+                                    TaskListRequestModel(
+                                        createdAt: task.createdAt,
+                                        dueDate: task.dueDate,
+                                        taskDescription: task.taskDescription,
+                                        taskStatus: value,
+                                        taskTitle: task.taskTitle);
                                 updatebloc.add(UpdateEvent(task.id!, model));
-                                // Handle checkbox change here
+                               
                               },
                             );
                           },
                         ),
-                        title: Text(task.taskTitle!,style: TextStyle(overflow: TextOverflow.ellipsis,),maxLines: 1,),
-                        subtitle: Text(task.taskDescription!,style: TextStyle(overflow: TextOverflow.ellipsis,),maxLines: 1,),
-                        trailing: BlocConsumer<DeleteTasksBloc, DeleteTasksState>(
+                        title: Text(
+                          task.taskTitle!,
+                          style: TextStyle(
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          maxLines: 1,
+                        ),
+                        subtitle: Text(
+                          task.taskDescription!,
+                          style: TextStyle(
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          maxLines: 1,
+                        ),
+                        trailing:
+                            BlocConsumer<DeleteTasksBloc, DeleteTasksState>(
                           listener: (context, state) {
                             if (state is DeleteTasksSuccess) {
-                              
                               final deletedTaskId = state.task!.id;
                               setState(() {
-                                taskList
-                                    .removeWhere((task) => task.id == deletedTaskId);
+                                taskList.removeWhere(
+                                    (task) => task.id == deletedTaskId);
                               });
-                          
+                    
                               Navigator.of(context, rootNavigator: true).pop();
                             } else if (state is DeleteTasksLoading) {
                               showLoadingDialog(context);
@@ -337,10 +350,10 @@ class _TaskListPageState extends State<TaskListPage> {
         child: Column(
           children: [
             Lottie.asset(
-              'assets/lottie/noth.json', // Replace 'animation.json' with the path to your Lottie animation file
-              width: 200, // Adjust the width as needed
-              height: 200, // Adjust the height as needed
-              fit: BoxFit.cover, // Adjust the fit as needed
+              'assets/lottie/noth.json',
+              width: 200, 
+              height: 200, 
+              fit: BoxFit.cover, 
             ),
             Text(
               'Add Tasks',
@@ -359,21 +372,21 @@ class _TaskListPageState extends State<TaskListPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return Dialog(
-          backgroundColor: Colors.transparent, // Make the dialog transparent
-          elevation: 0, // Remove the shadow
+          backgroundColor: Colors.transparent, 
+          elevation: 0, 
           child: Center(
             child: Container(
               padding: EdgeInsets.all(20.0),
               decoration: BoxDecoration(
-                color: Colors.white, // Add a background color if needed
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(10.0),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SpinKitFadingCube(
-                    color: Colors.blue, // Customize the color of the spinner
-                    size: 50.0, // Customize the size of the spinner
+                    color: Colors.blue, 
+                    size: 50.0, 
                   ),
                   SizedBox(height: 20.0),
                   Text('Loading...'),

@@ -45,7 +45,7 @@ class TaskFilterProvider extends ChangeNotifier {
         taskList = taskList.where((task) => task.taskStatus == true).toList();
         break;
       default:
-        // No additional filtering required for "All" filter
+       
         break;
     }
 

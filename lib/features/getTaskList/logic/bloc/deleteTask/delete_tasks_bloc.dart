@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:taskapp/features/getTaskList/data/models/task_list_response_model.dart';
 import 'package:taskapp/features/getTaskList/data/repository/delete_task_repo.dart';
-import 'package:taskapp/features/getTaskList/logic/cubit/getTaskCubit/get_tasks_cubit.dart';
+
 
 part 'delete_tasks_event.dart';
 part 'delete_tasks_state.dart';
